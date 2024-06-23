@@ -14,6 +14,20 @@ export default class Game {
         this.start();
     }
 
+    private placeMine(index: number) {
+        if (!this._cells[index]) return;
+
+        this._cells[index].placeMine();
+        this.findSurroundingCells(this._cells[index]).forEach(cell => cell.incrementSurroundingMines());
+    }
+
+    private removeMine(index: number) {
+        if (!this._cells[index]) return;
+
+        this._cells[index].removeMine();
+        this.findSurroundingCells(this._cells[index]).forEach(cell => cell.decrementSurroundingMines());
+    }
+
     private placeMines(): void {
         if (!this._cells.length) return;
 
@@ -23,8 +37,7 @@ export default class Game {
         }
 
         for (const spot of mineSpots) {
-            this._cells[spot].makeMine();
-            this.findSurroundingCells(this._cells[spot]).forEach(cell => cell.incrementSurroundingMines());
+            this.placeMine(spot);
         }
     }
 
@@ -54,7 +67,26 @@ export default class Game {
         return this._cells[y * this._size + x];
     }
 
+    private resetState() {
+        this._isGameOver = false;
+        this._isGameWon = false;
+        this._time = 0;
+        this._timer = undefined;
+        this._cells = [];
+    }
+
     reveal(cell: GameCell): void {
+        if (!this._timer) {
+            // First reveal!
+            if (cell.isMine) {
+                // Move mine to first available position.
+                this.placeMine(this.cells.findIndex(cell => !cell.isMine));
+                this.removeMine(this._cells.indexOf(cell));
+            }
+
+            this.startTimer();
+        }
+
         if (cell.isShown || cell.isFlagged || this.isGameOver) {
             return;
         }
@@ -82,10 +114,7 @@ export default class Game {
     }
 
     start(size = this._size): void {
-        this._isGameOver = false;
-        this._isGameWon = false;
-        this._time = 0;
-        this._cells = [];
+        this.resetState();
         this._size = size;
         this._mineCount = Math.round((size ** 2) * 0.156);
 
@@ -96,7 +125,6 @@ export default class Game {
         }
 
         this.placeMines();
-        this.startTimer();
     }
 
     gameOver() {

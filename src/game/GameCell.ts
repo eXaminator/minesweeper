@@ -26,8 +26,12 @@ export default class GameCell {
         return this._isFlagged;
     }
 
-    makeMine(): void {
+    placeMine(): void {
         this._isMine = true;
+    }
+
+    removeMine(): void {
+        this._isMine = false;
     }
 
     get isMine(): boolean {
@@ -36,6 +40,10 @@ export default class GameCell {
 
     incrementSurroundingMines(): void {
         this._surroundingMines++;
+    }
+
+    decrementSurroundingMines(): void {
+        this._surroundingMines--;
     }
 
     get surroundingMines(): number {
